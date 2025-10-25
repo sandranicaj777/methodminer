@@ -17,7 +17,7 @@ else:
 
 #Connect to Redis
 try:
-    r = redis.Redis(host="redis_service", port=6379, decode_responses=True)
+    r = redis.Redis(host="redis", port=6379, decode_responses=True)
     r.ping()
     print("Connected to Redis successfully")
 except Exception as e:
@@ -111,10 +111,13 @@ if top_repo:
                 else:
                     print("No methods found.")
 
-            #Push words to Redis
+            #Push words to Redis (list + live publish)
             if r and all_words:
                 for w in all_words:
+                    #Push to persistent list
                     r.lpush("method_words", w)
+                    #Publish live update for visualizer
+                    r.publish("word_stream", w)
                 print(f"Pushed {len(all_words)} words to Redis from {file_path}")
 
     except Exception as e:
