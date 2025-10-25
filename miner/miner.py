@@ -1,7 +1,16 @@
-from github import Github
+import os
+from github import Github, Auth
 
-#Basic connection to github
-g = Github()
+#Read GitHub token from environment variable
+token = os.getenv("GITHUB_TOKEN")
+
+#Connect to GitHub (authenticated if token is available)
+if token:
+    print("Using authenticated GitHub connection")
+    g = Github(auth=Auth.Token(token))
+else:
+    print("No token found, using anonymous connection (limited requests)")
+    g = Github()
 
 print("Fetching 5 top Python repositories")
 
