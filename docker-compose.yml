@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  redis:
+    image: redis:7.2
+    container_name: redis_service
+    ports:
+      - "6379:6379"
+
+  miner:
+    build: .
+    container_name: miner_service
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    depends_on:
+      - redis

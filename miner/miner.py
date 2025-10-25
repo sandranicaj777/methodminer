@@ -17,7 +17,7 @@ else:
 
 #Connect to Redis
 try:
-    r = redis.Redis(host='localhost', port=6379, db=0)
+    r = redis.Redis(host="redis_service", port=6379, decode_responses=True)
     r.ping()
     print("Connected to Redis successfully")
 except Exception as e:
@@ -42,7 +42,7 @@ for repo in repos:
 
 print("Fetched 5 repositories.\n")
 
-#--- Helper function to split method names into words ---
+#Helper function to split method names into words
 def split_method_name(name):
     #Replace underscores with spaces
     name = name.replace("_", " ")
