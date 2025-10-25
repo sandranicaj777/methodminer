@@ -32,6 +32,16 @@ for repo in repos:
 
 print("Fetched 5 repositories.\n")
 
+#--- Helper function to split method names into words ---
+def split_method_name(name):
+    #Replace underscores with spaces
+    name = name.replace("_", " ")
+    #Add space before any capital letter (for camelCase)
+    name = re.sub(r'([a-z])([A-Z])', r'\1 \2', name)
+    #Split into words and lowercase them
+    words = name.lower().split()
+    return words
+
 #Explore files of the top repository
 if top_repo:
     print(f"Now exploring repository: {top_repo.full_name}")
@@ -69,6 +79,11 @@ if top_repo:
                         print("Extracted functions:")
                         for name in func_names:
                             print("  -", name)
+                        #Split and show words
+                        print("Split words from functions:")
+                        for name in func_names:
+                            words = split_method_name(name)
+                            print(f"    {name} → {words}")
                     else:
                         print("No functions found.")
                 except Exception as parse_error:
@@ -83,6 +98,11 @@ if top_repo:
                     print("Extracted methods:")
                     for method in java_methods:
                         print("  -", method)
+                    #Split and show words
+                    print("Split words from methods:")
+                    for method in java_methods:
+                        words = split_method_name(method)
+                        print(f"    {method} → {words}")
                 else:
                     print("No methods found.")
 
