@@ -1,6 +1,7 @@
 import os
 import ast
 import re
+import redis
 from github import Github, Auth
 
 #Read GitHub token 
@@ -13,6 +14,15 @@ if token:
 else:
     print("No token found, using anonymous connection (limited requests)")
     g = Github()
+
+#Connect to Redis
+try:
+    r = redis.Redis(host='localhost', port=6379, db=0)
+    r.ping()
+    print("Connected to Redis successfully")
+except Exception as e:
+    print("Redis connection failed:", e)
+    r = None
 
 print("Fetching 5 top Python repositories")
 
@@ -63,11 +73,13 @@ if top_repo:
         for f in code_files[:10]:
             print("  -", f)
 
-        #extract function/method names
+        #Extract function/method names and push to Redis
         for file_path in code_files[:3]:
             print(f"\nReading file: {file_path}")
             file_content = top_repo.get_contents(file_path)
             code = file_content.decoded_content.decode("utf-8")
+
+            all_words = []
 
             #Python file extraction
             if file_path.endswith(".py"):
@@ -79,11 +91,8 @@ if top_repo:
                         print("Extracted functions:")
                         for name in func_names:
                             print("  -", name)
-                        #Split and show words
-                        print("Split words from functions:")
-                        for name in func_names:
                             words = split_method_name(name)
-                            print(f"    {name} → {words}")
+                            all_words.extend(words)
                     else:
                         print("No functions found.")
                 except Exception as parse_error:
@@ -92,19 +101,21 @@ if top_repo:
             #Java file extraction
             elif file_path.endswith(".java"):
                 print("Language detected: Java")
-                #Simple regex 
                 java_methods = re.findall(r'\b(?:public|private|protected)\s+\w+\s+(\w+)\s*\(', code)
                 if java_methods:
                     print("Extracted methods:")
                     for method in java_methods:
                         print("  -", method)
-                    #Split and show words
-                    print("Split words from methods:")
-                    for method in java_methods:
                         words = split_method_name(method)
-                        print(f"    {method} → {words}")
+                        all_words.extend(words)
                 else:
                     print("No methods found.")
+
+            #Push words to Redis
+            if r and all_words:
+                for w in all_words:
+                    r.lpush("method_words", w)
+                print(f"Pushed {len(all_words)} words to Redis from {file_path}")
 
     except Exception as e:
         print("Error while accessing repository contents:", e)
