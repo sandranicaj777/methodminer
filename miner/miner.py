@@ -44,7 +44,7 @@ print("Fetched 5 repositories.\n")
 
 #Helper function to split method names into words
 def split_method_name(name):
-    #Replace underscores with spaces
+    #Replace underscores with spaces accordingly
     name = name.replace("_", " ")
     #Add space before any capital letter (for camelCase)
     name = re.sub(r'([a-z])([A-Z])', r'\1 \2', name)
