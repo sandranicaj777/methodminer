@@ -1,14 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MethodMiner Visualizer</title>
-    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <title>Live Word Stream</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #fafafa;
+            margin: 30px;
+        }
+        h1 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            color: #757575;
+        }
+        #controls {
+            margin-bottom: 1rem;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        #total {
+            font-weight: 400;
+            color: #757575;
+            margin-left: 20px;
+        }
+        canvas {
+            max-width: 2000px;
+        }
+    </style>
 </head>
 <body>
     <h1>Live Word Stream</h1>
-    <canvas id="wordChart" width="800" height="400"></canvas>
+    <div id="controls">
+        <input type="text" id="filter" placeholder="Filter words..." />
+        <span id="total">Total: 0</span>
+    </div>
+    <canvas id="wordChart" height="200"></canvas>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
