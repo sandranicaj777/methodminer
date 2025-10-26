@@ -75,7 +75,7 @@ def mine_top_repositories():
                 print("  -", f)
 
             # Extract function/method names and push to Redis
-            for file_path in code_files[:3]:
+            for file_path in code_files[:10]:
                 print(f"\nReading file: {file_path}")
                 file_content = top_repo.get_contents(file_path)
                 code = file_content.decoded_content.decode("utf-8")
