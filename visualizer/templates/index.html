@@ -1,64 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Live Word Stream</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #fafafa;
-            margin: 30px;
-        }
-        h1 {
-            font-family: 'Inter', sans-serif;
-            font-weight: 500;
-            color: #757575;
-        }
-        #controls {
-            margin-bottom: 1rem;
-        }
-        select, input {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-        }
-        #total {
-            font-weight: 400;
-            color: #757575;
-            margin-left: 20px;
-        }
-        #repoLabel {
-            color: #888;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-        canvas {
-            max-width: 2000px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Method Miner · Live Code Insight</title>
+
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon1.png') }}">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #f9fafb;
+      --card-bg: #ffffff;
+      --text-main: #222;
+      --text-muted: #757575;
+      --accent: #007bff;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 40px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 2000px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+      padding: 40px 60px;
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      justify-content: left;
+      margin-bottom: 15px;
+    }
+
+    .logo {
+      height: 100px;
+      width: auto;
+    }
+
+    h1 {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      color: var(--text-main);
+      font-size: 28px;
+      margin: 0;
+    }
+
+    #controls {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      justify-content: flex-start;
+    }
+
+    select, input {
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
+    }
+
+    #total {
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-left: 10px;
+    }
+
+    #repoLabel {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    #summary {
+      background: linear-gradient(to right, #f0f4ff, #f8faff);
+      color: #333;
+      font-size: 15px;
+      border-left: 4px solid var(--accent);
+      padding: 10px 15px;
+      border-radius: 10px;
+      margin-top: 15px;
+      margin-bottom: 15px;
+      font-weight: 500;
+      opacity: 0;
+      animation: fadeInSummary 1.2s ease forwards;
+    }
+
+    @keyframes fadeInSummary {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    #chartContainer {
+      margin-top: 20px;
+      height: 420px;
+    }
+
+    #all{
+        color: #333;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  </style>
 </head>
+
 <body>
-    <h1>Live Word Stream</h1>
-
-    <div id="controls">
-        <select id="langSelect">
-            <option value="all">All Languages</option>
-            <option value="python">Python</option>
-            <option value="java">Java</option>
-        </select>
-
-        <input type="text" id="filter" placeholder="Filter words..." />
-        <span id="total">Total: 0</span>
+  <div class="container">
+    <div class="logo-title">
+      <img src="{{ url_for('static', filename='favicon.png') }}" alt="Method Miner logo" class="logo">
+      <h1>Method Miner — Live Word Stream</h1>
     </div>
 
+    <div id="controls">
+      <select id="langSelect">
+        <option value="all">All Languages</option>
+        <option value="python">Python</option>
+        <option value="java">Java</option>
+      </select>
+
+      <input type="text" id="filter" placeholder="Filter words..." />
+      <span id="total">Total: 0</span>
+    </div>
 
     <p id="repoLabel">Last repo: —</p>
 
-    <canvas id="wordChart" height="200"></canvas>
+    <div id="summary">
+      Top 10 most frequent words 
+    </div>
 
+    <div id="chartContainer">
+      <canvas id="wordChart"></canvas>
+    </div>
+  </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

@@ -18,7 +18,6 @@ def test_split_method_name_camel_case():
 
 
 
-
 def test_extract_python_functions_basic():
     code = '''
 def make_response(*args):

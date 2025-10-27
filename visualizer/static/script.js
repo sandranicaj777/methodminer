@@ -7,20 +7,72 @@ let currentLang = "all";
 function getColor(word) {
     if (!colorMap[word]) {
         const hue = Math.floor(Math.random() * 360);
-        colorMap[word] = `hsl(${hue}, 70%, 75%)`;
+        colorMap[word] = `hsl(${hue}, 70%, 65%)`;
     }
     return colorMap[word];
 }
 
 const ctx = document.getElementById("wordChart").getContext("2d");
+
+function createGradient(ctx, color) {
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, color.replace("65%", "75%"));
+    gradient.addColorStop(1, color.replace("65%", "55%"));
+    return gradient;
+}
+
 const chart = new Chart(ctx, {
     type: "bar",
-    data: { labels: [], datasets: [{ label: "Word Frequency", data: [], backgroundColor: [] }] },
+    data: {
+        labels: [],
+        datasets: [
+            {
+                label: "Word Frequency",
+                data: [],
+                backgroundColor: [],
+                borderRadius: 8,
+                borderSkipped: false, 
+            },
+        ],
+    },
     options: {
         responsive: true,
-        animation: { duration: 600, easing: "easeOutQuart" },
-        scales: { y: { beginAtZero: true, grace: "10%" } },
-        plugins: { legend: { display: false } },
+        maintainAspectRatio: false,
+        animation: {
+            duration: 700,
+            easing: "easeOutQuart",
+        },
+        scales: {
+            x: {
+                grid: {
+                    display: false,
+                },
+                ticks: {
+                    color: "#555",
+                    font: { size: 13 },
+                },
+            },
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: "rgba(0,0,0,0.05)",
+                },
+                ticks: {
+                    color: "#777",
+                    font: { size: 12 },
+                },
+            },
+        },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: "rgba(0,0,0,0.7)",
+                titleFont: { size: 14, weight: "600" },
+                bodyFont: { size: 13 },
+                padding: 10,
+                cornerRadius: 8,
+            },
+        },
     },
 });
 
@@ -33,7 +85,12 @@ function updateChart() {
 
     chart.data.labels = filtered.map(([w]) => w);
     chart.data.datasets[0].data = filtered.map(([_, c]) => c);
-    chart.data.datasets[0].backgroundColor = filtered.map(([w]) => getColor(w));
+
+    chart.data.datasets[0].backgroundColor = filtered.map(([w]) => {
+        const base = getColor(w);
+        return createGradient(ctx, base);
+    });
+
     chart.update();
 
     const total = Object.values(data).reduce((a, b) => a + b, 0);
@@ -43,7 +100,6 @@ function updateChart() {
 socket.on("new_word", (data) => {
     const { word, lang, repo } = data;
 
-
     wordCounts["all"][word] = (wordCounts["all"][word] || 0) + 1;
     wordCounts[lang] = wordCounts[lang] || {};
     wordCounts[lang][word] = (wordCounts[lang][word] || 0) + 1;
@@ -51,7 +107,6 @@ socket.on("new_word", (data) => {
     document.getElementById("repoLabel").textContent = `Last repo: ${repo}`;
     updateChart();
 });
-
 
 document.getElementById("filter").addEventListener("input", (e) => {
     filter = e.target.value.trim().toLowerCase();
@@ -62,7 +117,6 @@ document.getElementById("langSelect").addEventListener("change", (e) => {
     currentLang = e.target.value;
     updateChart();
 });
-
 
 ["all", "python", "java"].forEach((lang) => {
     fetch(`/api/words?lang=${lang}`)
