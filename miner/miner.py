@@ -7,7 +7,7 @@ import signal
 from github import Github, Auth
 from dotenv import load_dotenv
 
-print("=== MINER STARTING ===")
+print("MINER STARTING")
 
 # Load environment variables
 load_dotenv()
