@@ -19,7 +19,7 @@
         #controls {
             margin-bottom: 1rem;
         }
-        input {
+        select, input {
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 8px;
@@ -29,6 +29,11 @@
             color: #757575;
             margin-left: 20px;
         }
+        #repoLabel {
+            color: #888;
+            font-size: 14px;
+            margin-top: 10px;
+        }
         canvas {
             max-width: 2000px;
         }
@@ -36,11 +41,23 @@
 </head>
 <body>
     <h1>Live Word Stream</h1>
+
     <div id="controls">
+        <select id="langSelect">
+            <option value="all">All Languages</option>
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+        </select>
+
         <input type="text" id="filter" placeholder="Filter words..." />
         <span id="total">Total: 0</span>
     </div>
+
+
+    <p id="repoLabel">Last repo: —</p>
+
     <canvas id="wordChart" height="200"></canvas>
+
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

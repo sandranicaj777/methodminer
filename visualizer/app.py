@@ -2,7 +2,7 @@ import eventlet
 eventlet.monkey_patch()
 
 from flask import Flask, render_template, jsonify, request
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO
 import redis
 import threading
 
@@ -23,13 +23,23 @@ def index():
 
 @app.route("/api/words")
 def get_words():
-    """Return persisted word counts"""
+    lang = request.args.get("lang", "all")
     if not r:
         return jsonify({})
-    data = r.hgetall("word_counts")
+    data = r.hgetall(f"word_counts:{lang}")
     sorted_data = dict(sorted(data.items(), key=lambda x: int(x[1]), reverse=True))
     return jsonify(sorted_data)
 
+@app.route("/api/analytics")
+def analytics():
+    """Top 5 words per language"""
+    result = {}
+    for lang in ["python", "java", "all"]:
+        data = r.hgetall(f"word_counts:{lang}")
+        top5 = sorted(data.items(), key=lambda x: int(x[1]), reverse=True)[:5]
+        result[lang] = top5
+    result["last_repo"] = r.get("last_repo")
+    return jsonify(result)
 
 def redis_listener():
     if not r:
@@ -42,10 +52,17 @@ def redis_listener():
 
     for message in pubsub.listen():
         if message["type"] == "message":
-            word = message["data"]
-            r.hincrby("word_counts", word, 1)
-            socketio.emit("new_word", {"word": word})
-            print(f"New word: {word}")
+            try:
+                repo, lang, word = message["data"].split("|")
+            except ValueError:
+                repo, lang, word = "unknown_repo", "unknown_lang", message["data"]
+
+            r.hincrby(f"word_counts:{lang}", word, 1)
+            r.hincrby("word_counts:all", word, 1)
+            r.set("last_repo", repo)
+
+            socketio.emit("new_word", {"word": word, "lang": lang, "repo": repo})
+            print(f"[{lang}] {repo}: {word}")
 
 threading.Thread(target=redis_listener, daemon=True).start()
 

@@ -1,2 +1,6 @@
 PyGithub==2.8.1
 redis==5.0.1
+Flask==2.3.3
+Flask-SocketIO==5.3.6
+eventlet==0.33.3
+python-dotenv==1.0.0
